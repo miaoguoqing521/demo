@@ -50,9 +50,10 @@ public class MainActivity extends BaseActivity implements initView {
     }
 
     @Override
-    public void ok(String str) {
+    public void ok(final String str) {
         pull.setMode(PullToRefreshBase.Mode.BOTH);
-
+        ltAdapter = new LtAdapter(list, MainActivity.this);
+        grid.setAdapter(ltAdapter);
 
         //上下拉刷新
         pull.setOnRefreshListener(new PullToRefreshBase.OnRefreshListener2<ScrollView>() {
@@ -68,32 +69,33 @@ public class MainActivity extends BaseActivity implements initView {
                 getDatean();
             }
             private void getDatean() {
-               HttpUtils.getInstance().getData(Constant.BULS_RES + page, new CallBack() {
-                   @Override
-                   public void onsuccess(String data) {
-                       if (page==1){
-                           list.clear();
-                       }
-                       try {
-                           JSONObject object = new JSONObject(data);
-                           JSONArray result = object.getJSONArray("result");
-                           for (int i = 0; i < result.length(); i++) {
-                               JSONObject obj = (JSONObject) result.get(i);
-                               String masterPic = obj.getString("masterPic");
-                               String commodityName = obj.getString("commodityName");
-                               Bean bean = new Bean(commodityName, masterPic);
-                               list.add(bean);
-                               Log.e("aa", "onsuccess: "+bean.getCommodityName());
-                           }
-                           ltAdapter = new LtAdapter(list, MainActivity.this);
-                           grid.setAdapter(ltAdapter);
-                           ltAdapter.notifyDataSetChanged();
-                           pull.onRefreshComplete();
-                       } catch (JSONException e) {
-                           e.printStackTrace();
-                       }
-                   }
-               });
+                if (page==1){
+                    list.clear();
+                }
+                try {
+                    JSONObject object = new JSONObject(str);
+                    JSONArray result = object.getJSONArray("result");
+                    for (int i = 0; i < result.length(); i++) {
+                        JSONObject obj = (JSONObject) result.get(i);
+                        String masterPic = obj.getString("masterPic");
+                        String commodityName = obj.getString("commodityName");
+                        Bean bean = new Bean(commodityName, masterPic);
+                        list.add(bean);
+                        Log.e("aa", "onsuccess: "+bean.getCommodityName());
+                    }
+
+                    ltAdapter.notifyDataSetChanged();
+                    pull.onRefreshComplete();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+//               HttpUtils.getInstance().getData(Constant.BULS_RES + page, new CallBack() {
+//                   @Override
+//                   public void onsuccess(String data) {
+//                       Log.e("qwe",""+data);
+//
+//                   }
+//               });
             }
         });
     }
