@@ -1,6 +1,9 @@
 package com.bawei.miaoguoqing0709.model.http;
 
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -11,9 +14,6 @@ import java.net.URL;
 
 public class HttpUtils {
     private static HttpUtils httpUtils;
-    private HttpURLConnection connection;
-    private HttpURLConnection connection1;
-
     private HttpUtils(){
 
     }
@@ -23,45 +23,51 @@ public class HttpUtils {
         }
         return httpUtils;
     }
-
-    public String getData(String strUrl){
-        try {
-            URL url = new URL(strUrl);
-            connection1 = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            int code = connection.getResponseCode();
-            if (code==200){
-                InputStream inputStream = connection.getInputStream();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                StringBuffer buffer = new StringBuffer();
-                String str="";
-                while ((str=bufferedReader.readLine())!=null){
-                    buffer.append(str);
-                }
-                connection.disconnect();
-                bufferedReader.close();
-                return buffer.toString();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    Handler handler=new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            String data= (String) msg.obj;
+            callBack.onsuccess(data);
         }
-    return "";
-    }
-    public void getAsyncTask(String strUrl, final GetBack callBack){
-        new AsyncTask<String,Integer,String>(){
-            @Override
-            protected String doInBackground(String... strings) {
-                return getData(strings[0]);
-            }
+    };
+    private CallBack callBack;
+    private HttpURLConnection connection;
+
+    public void getData(final String strUrl, CallBack back){
+        this.callBack=back;
+        new Thread(new Runnable() {
+
+
 
             @Override
-            protected void onPostExecute(String s) {
-                super.onPostExecute(s);
-                callBack.getData(s);
+            public void run() {
+                try {
+                    URL url = new URL(strUrl);
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.setReadTimeout(5000);
+                    connection.setConnectTimeout(5000);
+                    int code = connection.getResponseCode();
+                    if (code==200){
+                        InputStream stream = connection.getInputStream();
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+                        StringBuffer buffer = new StringBuffer();
+                        String str="";
+                        while ((str=reader.readLine())!=null){
+                            buffer.append(str);
+                        }
+                        Message message = handler.obtainMessage();
+                        message.obj = buffer.toString();
+                        Log.e("aa", "onsuccess: "+buffer.toString());
+                        handler.sendMessage(message);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-        }.execute(strUrl);
+        }).start();
     }
-    public interface GetBack{
-        void getData(String s);
-    }
+
+
 }

@@ -3,6 +3,7 @@ package com.bawei.miaoguoqing0709.presenter;
 import android.util.Log;
 
 import com.bawei.miaoguoqing0709.Constant;
+import com.bawei.miaoguoqing0709.model.http.CallBack;
 import com.bawei.miaoguoqing0709.model.http.HttpUtils;
 import com.bawei.miaoguoqing0709.view.interfaces.initView;
 
@@ -21,10 +22,9 @@ public class HomePresenter {
         this.ini=null;
     }
     public void getLoan() {
-        instance.getAsyncTask(Constant.BULS_RES, new HttpUtils.GetBack() {
+        instance.getData(Constant.BULS_RES, new CallBack() {
             @Override
-            public void getData(String data) {
-                Log.e("ASD",""+data);
+            public void onsuccess(String data) {
                 ini.ok(data);
             }
         });
