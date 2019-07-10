@@ -1,18 +1,15 @@
-package com.bawei.miaoguoqing0709.model.http;
+package com.bawei.day4.model;
 
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
-
-import com.bawei.miaoguoqing0709.CallBack;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
-
+import java.net.URLConnection;
 
 public class HttpUtils {
     private static HttpUtils httpUtils;
@@ -29,16 +26,16 @@ public class HttpUtils {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            String data= (String) msg.obj;
-            callBack.onsuccess(data);
+            String da= (String) msg.obj;
+            callback.ondata(da);
         }
     };
-    private CallBack callBack;
-    private HttpURLConnection connection;
-
+    private CallBack callback;
     public void getData(final String strUrl, CallBack back){
-        this.callBack=back;
+        this.callback=back;
         new Thread(new Runnable() {
+
+            private HttpURLConnection connection;
 
             @Override
             public void run() {
@@ -46,8 +43,6 @@ public class HttpUtils {
                     URL url = new URL(strUrl);
                     connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod("GET");
-                    connection.setReadTimeout(5000);
-                    connection.setConnectTimeout(5000);
                     int code = connection.getResponseCode();
                     if (code==200){
                         InputStream stream = connection.getInputStream();
@@ -58,8 +53,7 @@ public class HttpUtils {
                             buffer.append(str);
                         }
                         Message message = handler.obtainMessage();
-                        message.obj = buffer.toString();
-                        Log.e("aa", "onsuccess: "+buffer.toString());
+                        message.obj=buffer.toString();
                         handler.sendMessage(message);
                     }
                 } catch (Exception e) {
@@ -68,6 +62,4 @@ public class HttpUtils {
             }
         }).start();
     }
-
-
 }
